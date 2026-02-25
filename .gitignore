@@ -23,15 +23,15 @@ build/
 # Uploads and user-generated content
 uploads/
 backend/uploads/
-*.pdf
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.svg
-*.mp4
-*.mov
-*.avi
+backend/uploads/*.pdf
+backend/uploads/*.png
+backend/uploads/*.jpg
+backend/uploads/*.jpeg
+backend/uploads/*.gif
+backend/uploads/*.svg
+backend/uploads/*.mp4
+backend/uploads/*.mov
+backend/uploads/*.avi
 
 # Logs
 *.log
