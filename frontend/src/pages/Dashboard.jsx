@@ -5,7 +5,7 @@ import sketchBoardLogo from '../assets/sketchBoard.png';
 import axios from 'axios';
 import './Dashboard.css';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`;
 
 const Dashboard = () => {
   const [roomId, setRoomId] = useState('');

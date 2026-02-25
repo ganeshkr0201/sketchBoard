@@ -19,8 +19,9 @@ const FileUpload = ({ roomId }) => {
 
     setUploading(true);
     try {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       const response = await axios.post(
-        'http://localhost:3000/api/files/upload',
+        `${API_URL}/api/files/upload`,
         formData,
         {
           headers: {
