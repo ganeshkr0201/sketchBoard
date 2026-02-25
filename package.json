@@ -1,0 +1,14 @@
+{
+  "name": "sketchboard",
+  "version": "1.0.0",
+  "description": "Real-time collaborative drawing application - SketchBoard",
+  "main": "backend/server.js",
+  "scripts": {
+    "server": "node backend/server.js",
+    "client": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "keywords": ["sketchboard", "collaboration", "real-time", "drawing"],
+  "author": "",
+  "license": "MIT"
+}

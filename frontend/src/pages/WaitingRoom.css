@@ -1,0 +1,235 @@
+.waiting-room {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.waiting-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.waiting-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border-radius: 50%;
+  color: #1a1a1a;
+}
+
+.spinner {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.waiting-content h1 {
+  margin: 0 0 1rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.waiting-content p {
+  margin: 0 0 2rem 0;
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.btn-cancel-request {
+  padding: 0.75rem 2rem;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-request:hover {
+  border-color: #1a1a1a;
+  background: #f9f9f9;
+}
+/* Waiting room header with logo */
+.waiting-header {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+}
+
+.waiting-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.logo-image {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: transparent;
+}
+/* Simple waiting room logo */
+.waiting-logo .logo-image {
+  /* No additional styling - pure transparent */
+}
+
+
+/* Responsive Design for Mobile and Tablet */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+  .waiting-room-container {
+    padding: 1.5rem;
+  }
+
+  .waiting-room-card {
+    padding: 2.5rem 2rem;
+    max-width: 520px;
+  }
+}
+
+/* Mobile (max-width: 767px) */
+@media (max-width: 767px) {
+  .waiting-room-container {
+    padding: 1rem;
+  }
+
+  .waiting-room-logo {
+    margin-bottom: 1.5rem;
+  }
+
+  .waiting-room-logo-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .logo-image {
+    width: 48px;
+    height: 48px;
+  }
+
+  .waiting-room-logo h1 {
+    font-size: 1.375rem;
+  }
+
+  .waiting-room-card {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+  }
+
+  .waiting-icon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .waiting-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .waiting-room-card h2 {
+    font-size: 1.25rem;
+  }
+
+  .waiting-room-card p {
+    font-size: 0.875rem;
+  }
+
+  .waiting-spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  .waiting-status {
+    font-size: 0.875rem;
+  }
+
+  .waiting-info {
+    padding: 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .waiting-info svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .btn-cancel-waiting {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Small Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  .waiting-room-container {
+    padding: 0.75rem;
+  }
+
+  .waiting-room-logo-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .logo-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .waiting-room-logo h1 {
+    font-size: 1.25rem;
+  }
+
+  .waiting-room-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .waiting-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .waiting-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .waiting-room-card h2 {
+    font-size: 1.125rem;
+  }
+
+  .waiting-spinner {
+    width: 36px;
+    height: 36px;
+  }
+
+  .waiting-info {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+  }
+}

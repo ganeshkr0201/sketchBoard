@@ -1,0 +1,125 @@
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem;
+  border-top: 2px solid #e2e8f0;
+  background: #fafbfc;
+}
+
+.chat h3 {
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat h3::before {
+  content: '💬';
+  font-size: 1.25rem;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.message {
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  animation: slideIn 0.3s ease-out;
+  transition: all 0.2s;
+}
+
+.message:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateX(2px);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message strong {
+  color: #6366f1;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.message span {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.chat form {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.chat input {
+  flex: 1;
+  padding: 0.875rem 1.125rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: var(--text-primary);
+  transition: all 0.3s;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.chat input::placeholder {
+  color: #94a3b8;
+}
+
+.chat input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
+}
+
+.chat button {
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  letter-spacing: 0.3px;
+}
+
+.chat button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.chat button:active {
+  transform: translateY(0);
+}

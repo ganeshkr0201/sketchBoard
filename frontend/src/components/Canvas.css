@@ -1,0 +1,22 @@
+.canvas {
+  width: 100%;
+  height: 100%;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  cursor: crosshair;
+  touch-action: none;
+  display: block;
+}
+/* Dark Mode Canvas */
+[data-theme="dark"] .canvas {
+  background: #1a1a1a;
+  border-color: #404040;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Smooth transition for theme switching */
+.canvas {
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
