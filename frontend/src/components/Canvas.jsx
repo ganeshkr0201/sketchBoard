@@ -84,7 +84,7 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
     };
   }, []);
 
-  // Draw grid for infinite canvas feel
+  // Draw plain background (no grid)
   const drawGrid = useCallback((ctx) => {
     if (!ctx) return;
     
@@ -92,31 +92,7 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = getCanvasBackgroundColor();
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw grid
-    ctx.strokeStyle = getGridColor();
-    ctx.lineWidth = 1;
-    
-    const gridSize = 50 * scale;
-    const startX = offset.x % gridSize;
-    const startY = offset.y % gridSize;
-    
-    // Vertical lines
-    for (let x = startX; x < canvas.width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
-    }
-    
-    // Horizontal lines
-    for (let y = startY; y < canvas.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-  }, [offset, scale, theme]);
+  }, [theme]);
 
   // Redraw canvas when theme changes
   useEffect(() => {
@@ -125,7 +101,7 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
     } else if (context) {
       drawGrid(context);
     }
-  }, [theme, context, offset, scale]);
+  }, [theme, context]);
 
   // Clear and redraw canvas
   const redrawCanvas = useCallback((strokes) => {
