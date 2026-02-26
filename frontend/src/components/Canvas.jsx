@@ -45,7 +45,8 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
   // Initialize canvas
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
     
     const ctx = canvas.getContext('2d');
     let resizeTimeout;
@@ -57,18 +58,23 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
         clearTimeout(resizeTimeout);
       }
       
-      // Delay resize to ensure layout has settled
-      resizeTimeout = setTimeout(() => {
-        const container = canvas.parentElement;
-        if (!container) return;
-        
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+      // Use requestAnimationFrame to ensure we get accurate dimensions after layout
+      requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect();
+        const width = Math.floor(rect.width);
+        const height = Math.floor(rect.height);
         
         // Only resize if dimensions actually changed
         if (canvas.width !== width || canvas.height !== height) {
+          // Set canvas internal dimensions
           canvas.width = width;
           canvas.height = height;
+          
+          // Also set CSS dimensions to match
+          canvas.style.width = width + 'px';
+          canvas.style.height = height + 'px';
+          
+          console.log('Canvas resized to:', width, 'x', height);
           
           // Center the view initially
           if (offset.x === 0 && offset.y === 0) {
@@ -85,22 +91,22 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
             drawGrid(ctx);
           }
         }
-      }, 250); // Increased to 250ms delay to ensure layout is complete
+      });
     };
     
-    // Initial resize
+    // Initial resize with delay
     setTimeout(() => resizeCanvas(), 100);
     
     window.addEventListener('resize', resizeCanvas);
     
     // Use ResizeObserver to detect container size changes
-    const resizeObserver = new ResizeObserver(() => {
-      resizeCanvas();
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        resizeCanvas();
+      }
     });
     
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
+    resizeObserver.observe(container);
     
     setContext(ctx);
     
