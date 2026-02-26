@@ -514,9 +514,13 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
     <div ref={containerRef} className="infinite-canvas-container">
       <canvas
         ref={canvasRef}
-        className="canvas infinite-canvas"
+        className={`canvas infinite-canvas ${
+          isPanning ? '' : 
+          !canDraw ? '' : 
+          tool === 'eraser' ? 'cursor-eraser' : 'cursor-pencil'
+        }`}
         style={{ 
-          cursor: isPanning ? 'grabbing' : (canDraw ? 'crosshair' : 'not-allowed'),
+          cursor: isPanning ? 'grabbing' : (!canDraw ? 'not-allowed' : undefined),
           touchAction: 'none'
         }}
         onMouseDown={handlePointerDown}
