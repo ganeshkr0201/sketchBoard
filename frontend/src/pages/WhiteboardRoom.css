@@ -3991,3 +3991,65 @@
     border-bottom-color: #2a2a2a;
   }
 }
+
+/* Fullscreen Mode */
+.whiteboard-room.fullscreen-mode {
+  background: #fafafa;
+}
+
+.whiteboard-room.fullscreen-mode .room-main {
+  width: 100vw;
+  height: 100vh;
+}
+
+.whiteboard-room.fullscreen-mode .canvas-container {
+  padding: 0;
+  border-radius: 0;
+}
+
+.whiteboard-room.fullscreen-mode .canvas {
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* Fullscreen Button */
+.btn-fullscreen {
+  background: white;
+  border: 1px solid #d0d0d0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.2s;
+  color: #1a1a1a;
+}
+
+.btn-fullscreen:hover {
+  border-color: #1a1a1a;
+  background: #f9f9f9;
+}
+
+.btn-fullscreen svg {
+  flex-shrink: 0;
+}
+
+/* Dark Mode Fullscreen */
+[data-theme="dark"] .whiteboard-room.fullscreen-mode {
+  background: #1a1a1a;
+}
+
+[data-theme="dark"] .btn-fullscreen {
+  background: #2a2a2a;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-fullscreen:hover {
+  border-color: #606060;
+  background: #3a3a3a;
+}

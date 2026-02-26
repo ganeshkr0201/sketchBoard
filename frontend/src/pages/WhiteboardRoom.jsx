@@ -45,6 +45,7 @@ const WhiteboardRoom = () => {
   const [remoteStream, setRemoteStream] = useState(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const snapshotFunctionRef = useRef(null);
   const messagesEndRef = useRef(null);
   const hasJoinedRef = useRef(false);
@@ -1033,7 +1034,8 @@ const WhiteboardRoom = () => {
   };
 
   return (
-    <div className="whiteboard-room">
+    <div className={`whiteboard-room ${isFullscreen ? 'fullscreen-mode' : ''}`}>
+      {!isFullscreen && (
       <header className="room-header">
         <div className="room-info-header">
           <span className="room-name">{roomName || 'Loading...'}</span>
@@ -1089,6 +1091,21 @@ const WhiteboardRoom = () => {
           </span>
         </div>
         <div className="header-actions">
+          <button 
+            className="btn-fullscreen" 
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+          >
+            {isFullscreen ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+              </svg>
+            )}
+          </button>
           <button 
             className="btn-snapshot" 
             onClick={handleSnapshot}
@@ -1180,9 +1197,10 @@ const WhiteboardRoom = () => {
           </button>
         </div>
       </header>
+      )}
 
       <div className="room-main">
-        {canDraw && (
+        {canDraw && !isFullscreen && (
           <div className="toolbar">
             <button 
               className={`tool-btn ${tool === 'pencil' ? 'active' : ''}`}
@@ -1359,6 +1377,7 @@ const WhiteboardRoom = () => {
           )}
         </button>
 
+        {!isFullscreen && (
         <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
           {/* Mobile Handle for dragging */}
           <div className="sidebar-handle" onClick={() => setIsSidebarOpen(false)}>
@@ -1714,6 +1733,7 @@ const WhiteboardRoom = () => {
             )}
           </div>
         </div>
+        )}
       </div>
 
       {showPermissionsModal && (
