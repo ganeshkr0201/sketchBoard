@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import GoogleSignIn from '../components/GoogleSignIn';
 import sketchBoardLogo from '../assets/sketchBoard.png';
 import './Auth.css';
 
@@ -10,15 +11,18 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
     
@@ -27,7 +31,18 @@ const Register = () => {
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = () => {
+    navigate('/dashboard');
+  };
+
+  const handleGoogleError = (error) => {
+    setError('Google sign-up failed. Please try again.');
+    console.error('Google sign-up error:', error);
   };
 
   return (
@@ -42,6 +57,19 @@ const Register = () => {
 
       <div className="auth-card">
         <h2>Create your account</h2>
+        
+        {/* Google Sign-In */}
+        <div className="oauth-section">
+          <GoogleSignIn 
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
+        </div>
+
+        <div className="divider">
+          <span>or continue with email</span>
+        </div>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Full name</label>
@@ -51,6 +79,7 @@ const Register = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -62,6 +91,7 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -74,6 +104,7 @@ const Register = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength="6"
+              disabled={isLoading}
             />
           </div>
 
@@ -85,12 +116,15 @@ const Register = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
           {error && <div className="error">{error}</div>}
 
-          <button type="submit">Create account</button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Creating account...' : 'Create account'}
+          </button>
         </form>
 
         <div className="auth-footer">

@@ -57,14 +57,47 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  const googleLogin = async (credential) => {
+    const response = await axios.post(`${API_URL}/auth/google`, {
+      credential
+    });
+    const { token: newToken, user: newUser } = response.data;
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+    setUser(newUser);
+    return response.data;
+  };
+
+  const updateProfile = async (profileData) => {
+    const response = await axios.put(`${API_URL}/auth/profile`, profileData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setUser(response.data.user);
+    return response.data;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    
+    // Sign out from Google if signed in
+    if (window.google && window.google.accounts) {
+      window.google.accounts.id.disableAutoSelect();
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      register, 
+      googleLogin,
+      updateProfile,
+      logout, 
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

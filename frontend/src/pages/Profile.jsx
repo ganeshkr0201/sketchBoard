@@ -13,6 +13,19 @@ const Profile = () => {
     navigate('/login');
   };
 
+  const getAuthProviderDisplay = (provider) => {
+    switch (provider) {
+      case 'google':
+        return { name: 'Google', icon: '🔗', color: 'google' };
+      case 'local':
+        return { name: 'Email & Password', icon: '📧', color: 'local' };
+      default:
+        return { name: 'Unknown', icon: '❓', color: 'default' };
+    }
+  };
+
+  const authProvider = getAuthProviderDisplay(user?.authProvider);
+
   return (
     <div className="profile-container">
       <div className="profile-logo">
@@ -25,11 +38,21 @@ const Profile = () => {
 
       <div className="profile-card">
         <div className="profile-avatar">
-          <span>{user?.name?.charAt(0).toUpperCase()}</span>
+          {user?.avatar ? (
+            <img src={user.avatar} alt={user.name} className="user-avatar" />
+          ) : (
+            <span>{user?.name?.charAt(0).toUpperCase()}</span>
+          )}
         </div>
         
         <h2>{user?.name}</h2>
         <p className="profile-email">{user?.email}</p>
+        
+        <div className="auth-provider-info">
+          <span className={`auth-provider-badge ${authProvider.color}`}>
+            {authProvider.icon} {authProvider.name}
+          </span>
+        </div>
         
         <div className="profile-info">
           <div className="info-item">
@@ -42,6 +65,21 @@ const Profile = () => {
               })}
             </span>
           </div>
+          
+          {user?.lastLogin && (
+            <div className="info-item">
+              <span className="info-label">Last login</span>
+              <span className="info-value">
+                {new Date(user.lastLogin).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
+            </div>
+          )}
           
           <div className="info-item">
             <span className="info-label">Theme preference</span>
