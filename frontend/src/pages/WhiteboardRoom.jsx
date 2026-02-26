@@ -46,6 +46,7 @@ const WhiteboardRoom = () => {
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
   const snapshotFunctionRef = useRef(null);
   const messagesEndRef = useRef(null);
   const hasJoinedRef = useRef(false);
@@ -1215,7 +1216,10 @@ const WhiteboardRoom = () => {
 
       <div className="room-main">
         {canDraw && !isFullscreen && (
-          <div className="toolbar">
+          <div 
+            className={`toolbar ${isToolbarExpanded ? 'expanded' : ''}`}
+            onClick={() => setIsToolbarExpanded(!isToolbarExpanded)}
+          >
             <button 
               className={`tool-btn ${tool === 'pencil' ? 'active' : ''}`}
               onClick={() => {
