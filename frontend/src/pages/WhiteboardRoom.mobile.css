@@ -702,6 +702,18 @@
 
 /* Mobile Fullscreen Button */
 @media (max-width: 767px) {
+  .btn-toggle-sidebar {
+    padding: 0.5rem;
+    font-size: 0;
+    min-width: auto;
+  }
+
+  .btn-toggle-sidebar svg {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+
   .btn-fullscreen {
     padding: 0.5rem;
     font-size: 0;

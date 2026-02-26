@@ -47,6 +47,7 @@ const WhiteboardRoom = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
+  const [isSidebarHidden, setIsSidebarHidden] = useState(false);
   const snapshotFunctionRef = useRef(null);
   const messagesEndRef = useRef(null);
   const hasJoinedRef = useRef(false);
@@ -1107,6 +1108,26 @@ const WhiteboardRoom = () => {
         </div>
         <div className="header-actions">
           <button 
+            className={`btn-toggle-sidebar ${isSidebarHidden ? 'hidden' : ''}`}
+            onClick={() => {
+              setIsSidebarHidden(!isSidebarHidden);
+              if (!isSidebarHidden) {
+                setIsSidebarOpen(false); // Close sidebar when hiding
+              }
+            }}
+            title={isSidebarHidden ? "Show Chat & Users" : "Hide Chat & Users"}
+          >
+            {isSidebarHidden ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5" />
+              </svg>
+            )}
+          </button>
+          <button 
             className="btn-fullscreen" 
             onClick={() => setIsFullscreen(!isFullscreen)}
             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
@@ -1387,6 +1408,7 @@ const WhiteboardRoom = () => {
         </div>
 
         {/* Mobile Sidebar Toggle Button */}
+        {!isSidebarHidden && (
         <button 
           className={`sidebar-toggle ${isSidebarOpen ? 'active' : ''}`}
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -1408,8 +1430,9 @@ const WhiteboardRoom = () => {
             </>
           )}
         </button>
+        )}
 
-        {!isFullscreen && (
+        {!isFullscreen && !isSidebarHidden && (
         <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
           {/* Mobile Handle for dragging */}
           <div className="sidebar-handle" onClick={() => setIsSidebarOpen(false)}>

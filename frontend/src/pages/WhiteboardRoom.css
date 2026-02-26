@@ -4056,6 +4056,52 @@
 }
 
 /* Fullscreen Button */
+/* Toggle Sidebar Button */
+.btn-toggle-sidebar {
+  background: white;
+  border: 1px solid #d0d0d0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.2s;
+  color: #1a1a1a;
+}
+
+.btn-toggle-sidebar:hover {
+  border-color: #1a1a1a;
+  background: #f9f9f9;
+}
+
+.btn-toggle-sidebar.hidden {
+  background: #f0f0f0;
+  border-color: #b0b0b0;
+}
+
+.btn-toggle-sidebar svg {
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .btn-toggle-sidebar {
+  background: #2a2a2a;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-toggle-sidebar:hover {
+  border-color: #606060;
+  background: #3a3a3a;
+}
+
+[data-theme="dark"] .btn-toggle-sidebar.hidden {
+  background: #1a1a1a;
+  border-color: #505050;
+}
+
 .btn-fullscreen {
   background: white;
   border: 1px solid #d0d0d0;
