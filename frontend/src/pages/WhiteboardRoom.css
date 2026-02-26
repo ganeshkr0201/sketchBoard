@@ -4008,11 +4008,12 @@
   border-radius: 0;
   width: 100%;
   height: 100%;
-  align-items: stretch;
-  justify-content: stretch;
 }
 
 .whiteboard-room.fullscreen-mode .canvas-container > div {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100% !important;
   height: 100% !important;
 }
@@ -4035,7 +4036,7 @@
   position: absolute;
   top: 20px;
   right: 20px;
-  z-index: 100;
+  z-index: 200;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #d0d0d0;
   padding: 0.75rem 1.25rem;
@@ -4050,6 +4051,7 @@
   color: #1a1a1a;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   backdrop-filter: blur(10px);
+  pointer-events: auto;
 }
 
 .btn-exit-fullscreen:hover {
@@ -4069,7 +4071,7 @@
   left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 100;
+  z-index: 200;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #e0e0e0;
   border-radius: 12px;
@@ -4082,6 +4084,7 @@
   backdrop-filter: blur(10px);
   max-height: 90vh;
   overflow-y: auto;
+  pointer-events: auto;
 }
 
 .floating-toolbar::-webkit-scrollbar {
