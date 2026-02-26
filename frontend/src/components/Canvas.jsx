@@ -118,11 +118,6 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
       }
     };
   }, []);
-    
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-    };
-  }, []);
 
   // Draw plain background (no grid)
   const drawGrid = useCallback((ctx) => {
