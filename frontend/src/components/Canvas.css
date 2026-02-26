@@ -12,7 +12,7 @@
 
 /* Custom cursor for pencil tool - simple and slim */
 .canvas.cursor-pencil {
-  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 18 L18 2 M16 2 L18 4" stroke="black" stroke-width="1.5" stroke-linecap="round"/><circle cx="2" cy="18" r="1" fill="black"/></svg>') 2 18, crosshair;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M3 25 L25 3 M22 3 L25 6" stroke="black" stroke-width="2" stroke-linecap="round"/><circle cx="3" cy="25" r="1.5" fill="black"/></svg>') 3 25, crosshair;
 }
 
 /* Custom cursor for eraser tool */
