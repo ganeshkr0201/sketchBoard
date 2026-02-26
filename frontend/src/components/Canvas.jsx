@@ -269,9 +269,9 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
     if (!context) return;
     
     const isMiddleClick = e.button === 1;
-    const isSpacePressed = e.shiftKey || e.ctrlKey; // Use Shift or Ctrl for panning
+    const isShiftPressed = e.shiftKey; // Shift for panning
     
-    if (isMiddleClick || isSpacePressed || !canDraw) {
+    if (isMiddleClick || isShiftPressed || !canDraw) {
       // Start panning
       setIsPanning(true);
       setPanStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
@@ -362,25 +362,37 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
     }
   };
 
-  // Zoom with mouse wheel
+  // Scroll to pan, Shift+Scroll to zoom
   const handleWheel = (e) => {
     e.preventDefault();
     
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.min(Math.max(0.1, scale * delta), 5);
+    if (e.shiftKey) {
+      // Shift + Scroll = Zoom
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.min(Math.max(0.1, scale * delta), 5);
+      
+      // Zoom towards mouse position
+      const rect = canvasRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      const newOffset = {
+        x: mouseX - (mouseX - offset.x) * (newScale / scale),
+        y: mouseY - (mouseY - offset.y) * (newScale / scale)
+      };
+      
+      setScale(newScale);
+      setOffset(newOffset);
+    } else {
+      // Regular Scroll = Pan
+      const panSpeed = 1;
+      const newOffset = {
+        x: offset.x - e.deltaX * panSpeed,
+        y: offset.y - e.deltaY * panSpeed
+      };
+      setOffset(newOffset);
+    }
     
-    // Zoom towards mouse position
-    const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    const newOffset = {
-      x: mouseX - (mouseX - offset.x) * (newScale / scale),
-      y: mouseY - (mouseY - offset.y) * (newScale / scale)
-    };
-    
-    setScale(newScale);
-    setOffset(newOffset);
     redrawCanvas(allStrokes.slice(0, currentIndex + 1));
   };
 
@@ -553,7 +565,7 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
         </button>
       </div>
       <div className="canvas-hint">
-        💡 Scroll to zoom • Shift+Drag to pan • Touch: Pinch to zoom
+        💡 Scroll to pan • Shift+Scroll to zoom • Shift+Drag to pan
       </div>
     </div>
   );
