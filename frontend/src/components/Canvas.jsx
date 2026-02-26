@@ -60,30 +60,37 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
       // Delay resize to ensure layout has settled
       resizeTimeout = setTimeout(() => {
         const container = canvas.parentElement;
+        if (!container) return;
+        
         const width = container.clientWidth;
         const height = container.clientHeight;
         
-        canvas.width = width;
-        canvas.height = height;
-        
-        // Center the view initially
-        if (offset.x === 0 && offset.y === 0) {
-          setOffset({
-            x: (width - VIRTUAL_WIDTH * scale) / 2,
-            y: (height - VIRTUAL_HEIGHT * scale) / 2
-          });
+        // Only resize if dimensions actually changed
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Center the view initially
+          if (offset.x === 0 && offset.y === 0) {
+            setOffset({
+              x: (width - VIRTUAL_WIDTH * scale) / 2,
+              y: (height - VIRTUAL_HEIGHT * scale) / 2
+            });
+          }
+          
+          // Redraw
+          if (allStrokes.length > 0) {
+            redrawCanvas(allStrokes.slice(0, currentIndex + 1));
+          } else {
+            drawGrid(ctx);
+          }
         }
-        
-        // Redraw
-        if (allStrokes.length > 0) {
-          redrawCanvas(allStrokes.slice(0, currentIndex + 1));
-        } else {
-          drawGrid(ctx);
-        }
-      }, 100); // 100ms delay to ensure layout is complete
+      }, 250); // Increased to 250ms delay to ensure layout is complete
     };
     
-    resizeCanvas();
+    // Initial resize
+    setTimeout(() => resizeCanvas(), 100);
+    
     window.addEventListener('resize', resizeCanvas);
     
     // Use ResizeObserver to detect container size changes
