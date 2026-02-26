@@ -48,36 +48,63 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
+    let resizeTimeout;
     
     // Make canvas responsive to container size
     const resizeCanvas = () => {
-      const container = canvas.parentElement;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      
-      canvas.width = width;
-      canvas.height = height;
-      
-      // Center the view initially
-      if (offset.x === 0 && offset.y === 0) {
-        setOffset({
-          x: (width - VIRTUAL_WIDTH * scale) / 2,
-          y: (height - VIRTUAL_HEIGHT * scale) / 2
-        });
+      // Clear any pending resize
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
       }
       
-      // Redraw
-      if (allStrokes.length > 0) {
-        redrawCanvas(allStrokes.slice(0, currentIndex + 1));
-      } else {
-        drawGrid(ctx);
-      }
+      // Delay resize to ensure layout has settled
+      resizeTimeout = setTimeout(() => {
+        const container = canvas.parentElement;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Center the view initially
+        if (offset.x === 0 && offset.y === 0) {
+          setOffset({
+            x: (width - VIRTUAL_WIDTH * scale) / 2,
+            y: (height - VIRTUAL_HEIGHT * scale) / 2
+          });
+        }
+        
+        // Redraw
+        if (allStrokes.length > 0) {
+          redrawCanvas(allStrokes.slice(0, currentIndex + 1));
+        } else {
+          drawGrid(ctx);
+        }
+      }, 100); // 100ms delay to ensure layout is complete
     };
     
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
     
+    // Use ResizeObserver to detect container size changes
+    const resizeObserver = new ResizeObserver(() => {
+      resizeCanvas();
+    });
+    
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
     setContext(ctx);
+    
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      resizeObserver.disconnect();
+      if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+      }
+    };
+  }, []);
     
     return () => {
       window.removeEventListener('resize', resizeCanvas);
