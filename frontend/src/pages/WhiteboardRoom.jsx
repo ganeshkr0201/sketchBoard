@@ -92,6 +92,20 @@ const WhiteboardRoom = () => {
     };
   }, [showToolbarMenu]);
 
+  // Handle ESC key to exit fullscreen
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [isFullscreen]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -1296,6 +1310,20 @@ const WhiteboardRoom = () => {
         )}
 
         <div className="canvas-container">
+          {/* Exit Fullscreen Button - Only visible in fullscreen mode */}
+          {isFullscreen && (
+            <button 
+              className="btn-exit-fullscreen"
+              onClick={() => setIsFullscreen(false)}
+              title="Exit Fullscreen (Press ESC)"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+              </svg>
+              Exit Fullscreen
+            </button>
+          )}
+          
           {activeScreenShare || isScreenSharing ? (
             <div className="screen-share-view">
               {isScreenSharing && (
