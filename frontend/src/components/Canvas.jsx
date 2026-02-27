@@ -29,17 +29,17 @@ const Canvas = ({ roomId, tool, color, brushSize, canDraw, onSnapshot }) => {
   const VIRTUAL_WIDTH = 10000;
   const VIRTUAL_HEIGHT = 10000;
 
-  // Get theme-aware colors
+  // Get theme-aware colors - Modern Blue/Cream theme
   const getCanvasBackgroundColor = () => {
-    return theme === 'dark' ? '#1a1a1a' : '#ffffff';
+    return theme === 'dark' ? '#0f172a' : '#fefbf3'; // Dark slate blue / Warm cream
   };
 
   const getGridColor = () => {
-    return theme === 'dark' ? '#2a2a2a' : '#f0f0f0';
+    return theme === 'dark' ? '#1e293b' : '#f1f5f9'; // Lighter slate / Light blue-gray
   };
 
   const getEraserColor = () => {
-    return theme === 'dark' ? '#1a1a1a' : '#ffffff';
+    return theme === 'dark' ? '#0f172a' : '#fefbf3'; // Match background
   };
 
   // Initialize canvas

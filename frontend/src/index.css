@@ -9,8 +9,9 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f5f5f5;
-  color: #1a1a1a;
+  background: #f8fafc;
+  color: #1e293b;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -57,4 +58,39 @@ body {
 .logo-image {
   filter: none;
   mix-blend-mode: normal;
+}
+/* Modern Theme Colors */
+[data-theme="light"] {
+  --bg-primary: #fefbf3;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --accent-primary: #3b82f6;
+  --accent-secondary: #06b6d4;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  --accent-primary: #60a5fa;
+  --accent-secondary: #22d3ee;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+}
+
+[data-theme="dark"] body {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }

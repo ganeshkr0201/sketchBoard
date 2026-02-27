@@ -2,16 +2,18 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
+  transition: background-color 0.3s ease;
 }
 
 .room-header {
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
   padding: 0.875rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.3s ease;
 }
 
 .room-info-header {
@@ -23,21 +25,21 @@
 .room-name {
   font-size: 1rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .room-id {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
   padding: 0.25rem 0.625rem;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border-radius: 4px;
 }
 
 .btn-copy {
-  background: white;
-  border: 1px solid #d0d0d0;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
   padding: 0.375rem 0.875rem;
   border-radius: 4px;
   font-size: 0.8125rem;
@@ -47,10 +49,12 @@
   align-items: center;
   gap: 0.375rem;
   transition: all 0.2s;
+  color: var(--text-primary);
 }
 
 .btn-copy:hover {
-  border-color: #1a1a1a;
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .room-users-count {
@@ -85,13 +89,14 @@
 
 .toolbar {
   width: 60px;
-  background: white;
-  border-right: 1px solid #e0e0e0;
+  background: var(--bg-tertiary);
+  border-right: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
   gap: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 .tool-btn {
@@ -254,13 +259,14 @@
 
 .canvas-container {
   flex: 1;
-  background: #fafafa;
+  background: var(--bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   overflow: hidden;
   min-height: 0;
+  transition: background-color 0.3s ease;
 }
 
 .canvas {
