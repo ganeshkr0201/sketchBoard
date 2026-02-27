@@ -116,12 +116,98 @@ const WhiteboardRoom = () => {
   useEffect(() => {
     if (remoteStream && remoteVideoRef.current) {
       console.log('Setting remote stream to video element');
-      remoteVideoRef.current.srcObject = remoteStream;
+      console.log('Remote stream tracks:', remoteStream.getTracks().map(t => ({
+        kind: t.kind,
+        enabled: t.enabled,
+        readyState: t.readyState,
+        muted: t.muted,
+        label: t.label
+      })));
       
-      // Ensure video plays
-      remoteVideoRef.current.play().catch(err => {
-        console.error('Error playing remote video:', err);
-      });
+      const video = remoteVideoRef.current;
+      
+      // Clear any existing stream first
+      video.srcObject = null;
+      
+      // Set new stream
+      video.srcObject = remoteStream;
+      
+      // Force video properties for screen sharing
+      video.muted = false; // Allow audio from screen share
+      video.playsInline = true;
+      video.autoplay = true;
+      
+      // Add event listeners for debugging
+      const handleLoadedMetadata = () => {
+        console.log('Remote video metadata loaded:', {
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight,
+          duration: video.duration,
+          readyState: video.readyState
+        });
+        
+        // Force play after metadata is loaded
+        video.play().catch(err => {
+          console.error('Error playing remote video after metadata:', err);
+        });
+      };
+      
+      const handleCanPlay = () => {
+        console.log('Remote video can play');
+        video.play().catch(err => {
+          console.error('Error playing remote video on canplay:', err);
+        });
+      };
+      
+      const handlePlay = () => {
+        console.log('Remote video started playing');
+      };
+      
+      const handleError = (e) => {
+        console.error('Remote video error:', e);
+        console.error('Video error details:', {
+          error: video.error,
+          networkState: video.networkState,
+          readyState: video.readyState
+        });
+      };
+      
+      const handleLoadStart = () => {
+        console.log('Remote video load started');
+      };
+      
+      const handleWaiting = () => {
+        console.log('Remote video waiting for data');
+      };
+      
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      video.addEventListener('canplay', handleCanPlay);
+      video.addEventListener('play', handlePlay);
+      video.addEventListener('error', handleError);
+      video.addEventListener('loadstart', handleLoadStart);
+      video.addEventListener('waiting', handleWaiting);
+      
+      // Try to play immediately
+      setTimeout(() => {
+        if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+          video.play().catch(err => {
+            console.error('Error playing remote video immediately:', err);
+          });
+        }
+      }, 100);
+      
+      // Cleanup
+      return () => {
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('canplay', handleCanPlay);
+        video.removeEventListener('play', handlePlay);
+        video.removeEventListener('error', handleError);
+        video.removeEventListener('loadstart', handleLoadStart);
+        video.removeEventListener('waiting', handleWaiting);
+      };
+    } else if (!remoteStream && remoteVideoRef.current) {
+      console.log('Clearing remote video stream');
+      remoteVideoRef.current.srcObject = null;
     }
   }, [remoteStream]);
 
@@ -309,8 +395,12 @@ const WhiteboardRoom = () => {
         await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
         console.log('Set remote description from offer');
 
-        // Create answer
-        const answer = await pc.createAnswer();
+        // Create answer with better configuration
+        const answer = await pc.createAnswer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true
+        });
+        
         await pc.setLocalDescription(answer);
         console.log('Created and set local description (answer)');
 
@@ -401,14 +491,25 @@ const WhiteboardRoom = () => {
         const pc = createPeerConnection();
         peerConnectionRef.current = pc;
 
-        // Add screen stream tracks
+        // Add screen stream tracks with better configuration
         stream.getTracks().forEach(track => {
-          console.log('Adding track to peer connection:', track.kind);
+          console.log('Adding track to peer connection:', {
+            kind: track.kind,
+            enabled: track.enabled,
+            readyState: track.readyState,
+            label: track.label
+          });
+          
+          // Add track with stream
           pc.addTrack(track, stream);
         });
 
-        // Create offer
-        const offer = await pc.createOffer();
+        // Create offer with better configuration
+        const offer = await pc.createOffer({
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true
+        });
+        
         await pc.setLocalDescription(offer);
         console.log('Created and set local description (offer)');
 
@@ -741,30 +842,70 @@ const WhiteboardRoom = () => {
       try {
         console.log('Starting screen share...');
         
-        const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: {
-            cursor: 'always',
-            width: { ideal: 1920, max: 1920 },
-            height: { ideal: 1080, max: 1080 },
-            frameRate: { ideal: 30, max: 30 }
-          },
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            sampleRate: 44100
-          }
-        });
+        let stream;
+        try {
+          // Try with audio first
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              cursor: 'always',
+              width: { ideal: 1920, max: 1920 },
+              height: { ideal: 1080, max: 1080 },
+              frameRate: { ideal: 30, max: 30 }
+            },
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              sampleRate: 44100
+            }
+          });
+        } catch (audioError) {
+          console.log('Failed to get screen share with audio, trying video only:', audioError);
+          // Fallback to video only if audio fails
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              cursor: 'always',
+              width: { ideal: 1920, max: 1920 },
+              height: { ideal: 1080, max: 1080 },
+              frameRate: { ideal: 30, max: 30 }
+            },
+            audio: false
+          });
+        }
 
         console.log('Got display media stream:', stream);
+        console.log('Stream tracks:', stream.getTracks().map(track => ({
+          kind: track.kind,
+          enabled: track.enabled,
+          readyState: track.readyState,
+          label: track.label,
+          settings: track.getSettings ? track.getSettings() : 'N/A'
+        })));
         
         setScreenStream(stream);
         screenStreamRef.current = stream;
         setIsScreenSharing(true);
 
-        // Set local video
+        // Set local video with better handling
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
-          localVideoRef.current.play().catch(e => console.log('Local video play error:', e));
+          localVideoRef.current.muted = true; // Mute local video to prevent feedback
+          localVideoRef.current.playsInline = true;
+          localVideoRef.current.autoplay = true;
+          
+          // Add event listeners for local video
+          const localVideo = localVideoRef.current;
+          
+          localVideo.addEventListener('loadedmetadata', () => {
+            console.log('Local video metadata loaded:', {
+              videoWidth: localVideo.videoWidth,
+              videoHeight: localVideo.videoHeight
+            });
+          });
+          
+          // Don't force play for local video as it's just for preview
+          localVideo.play().catch(e => {
+            console.log('Local video play error (this is normal for screen share):', e);
+          });
         }
 
         // Notify other users via socket
@@ -872,9 +1013,13 @@ const WhiteboardRoom = () => {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' }
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' }
         ],
-        iceCandidatePoolSize: 10
+        iceCandidatePoolSize: 10,
+        bundlePolicy: 'max-bundle',
+        rtcpMuxPolicy: 'require'
       };
 
       const pc = new RTCPeerConnection(configuration);
@@ -888,19 +1033,86 @@ const WhiteboardRoom = () => {
             userId: currentUserId,
             candidate: event.candidate
           });
+        } else if (!event.candidate) {
+          console.log('ICE gathering completed');
         }
       };
 
       pc.ontrack = (event) => {
-        console.log('Received remote track:', event.streams[0]);
-        const stream = event.streams[0];
-        setRemoteStream(stream);
+        console.log('Received remote track:', {
+          kind: event.track.kind,
+          enabled: event.track.enabled,
+          readyState: event.track.readyState,
+          streamId: event.streams[0]?.id,
+          label: event.track.label
+        });
         
-        // Set video element source
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
-          remoteVideoRef.current.play().catch(e => console.log('Remote video play error:', e));
-          console.log('Set remote video source');
+        const stream = event.streams[0];
+        
+        if (stream) {
+          console.log('Stream details:', {
+            id: stream.id,
+            active: stream.active,
+            tracks: stream.getTracks().map(t => ({
+              kind: t.kind,
+              enabled: t.enabled,
+              readyState: t.readyState,
+              label: t.label
+            }))
+          });
+          
+          // Ensure we have video tracks
+          const videoTracks = stream.getVideoTracks();
+          if (videoTracks.length === 0) {
+            console.error('No video tracks in received stream');
+            return;
+          }
+          
+          console.log('Video track details:', videoTracks.map(track => ({
+            enabled: track.enabled,
+            readyState: track.readyState,
+            label: track.label,
+            settings: track.getSettings ? track.getSettings() : 'N/A'
+          })));
+          
+          setRemoteStream(stream);
+          
+          // Set video element source immediately with retry mechanism
+          if (remoteVideoRef.current) {
+            const video = remoteVideoRef.current;
+            
+            // Clear existing source
+            video.srcObject = null;
+            
+            // Set new source
+            video.srcObject = stream;
+            
+            // Configure video element for screen sharing
+            video.muted = false; // Allow audio
+            video.playsInline = true;
+            video.autoplay = true;
+            video.controls = false;
+            
+            // Force play with retry
+            const tryPlay = async (attempts = 0) => {
+              try {
+                await video.play();
+                console.log('Remote video playing successfully');
+              } catch (error) {
+                console.error(`Play attempt ${attempts + 1} failed:`, error);
+                if (attempts < 3) {
+                  setTimeout(() => tryPlay(attempts + 1), 500);
+                }
+              }
+            };
+            
+            // Try to play after a short delay
+            setTimeout(() => tryPlay(), 100);
+            
+            console.log('Set remote video source in ontrack');
+          }
+        } else {
+          console.error('No stream in track event');
         }
       };
 
@@ -917,10 +1129,18 @@ const WhiteboardRoom = () => {
 
       pc.oniceconnectionstatechange = () => {
         console.log('ICE connection state:', pc.iceConnectionState);
-        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+        if (pc.iceConnectionState === 'failed') {
           console.log('ICE connection failed, attempting restart');
           pc.restartIce();
+        } else if (pc.iceConnectionState === 'disconnected') {
+          console.log('ICE connection disconnected');
+        } else if (pc.iceConnectionState === 'connected') {
+          console.log('ICE connection established');
         }
+      };
+
+      pc.onsignalingstatechange = () => {
+        console.log('Signaling state:', pc.signalingState);
       };
 
       return pc;
@@ -1412,6 +1632,38 @@ const WhiteboardRoom = () => {
                       <line x1="12" y1="17" x2="12" y2="21" />
                     </svg>
                     <span>You are sharing your screen</span>
+                    {process.env.NODE_ENV === 'development' && (
+                      <button
+                        onClick={() => {
+                          if (localVideoRef.current && screenStream) {
+                            console.log('Testing local video preview...');
+                            const video = localVideoRef.current;
+                            console.log('Local video element state:', {
+                              videoWidth: video.videoWidth,
+                              videoHeight: video.videoHeight,
+                              readyState: video.readyState,
+                              paused: video.paused,
+                              srcObject: video.srcObject
+                            });
+                            
+                            // Try to play the video
+                            video.play().catch(e => console.error('Local video play error:', e));
+                          }
+                        }}
+                        style={{
+                          marginLeft: '0.5rem',
+                          padding: '0.25rem 0.5rem',
+                          fontSize: '0.75rem',
+                          background: 'rgba(255,255,255,0.2)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Test Local
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -1436,14 +1688,68 @@ const WhiteboardRoom = () => {
                 muted={isScreenSharing}
                 className="screen-share-video"
                 controls={false}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                onLoadedMetadata={() => console.log('Video metadata loaded')}
-                onError={(e) => console.error('Video error:', e)}
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'contain',
+                  backgroundColor: '#000'
+                }}
+                onLoadedMetadata={(e) => {
+                  console.log('Video metadata loaded:', {
+                    videoWidth: e.target.videoWidth,
+                    videoHeight: e.target.videoHeight,
+                    duration: e.target.duration,
+                    readyState: e.target.readyState
+                  });
+                }}
+                onCanPlay={(e) => {
+                  console.log('Video can play, attempting to play...');
+                  e.target.play().catch(err => {
+                    console.error('Error playing video on canplay:', err);
+                  });
+                }}
+                onPlay={() => console.log('Video started playing')}
+                onError={(e) => {
+                  console.error('Video error:', e);
+                  console.error('Video error details:', {
+                    error: e.target.error,
+                    networkState: e.target.networkState,
+                    readyState: e.target.readyState,
+                    currentSrc: e.target.currentSrc
+                  });
+                }}
+                onWaiting={() => console.log('Video waiting for data')}
+                onLoadStart={() => console.log('Video load started')}
               />
               {!remoteStream && activeScreenShare && !isScreenSharing && (
                 <div className="screen-share-loading">
                   <div className="loading-spinner"></div>
                   <p>Connecting to screen share...</p>
+                  <button 
+                    className="btn-retry-connection"
+                    onClick={() => {
+                      console.log('Retrying screen share connection...');
+                      if (socket && user) {
+                        const userId = String(user._id || user.id);
+                        socket.emit('request-screen-share', {
+                          roomId,
+                          requesterId: userId,
+                          targetUserId: activeScreenShare.userId
+                        });
+                      }
+                    }}
+                    style={{
+                      marginTop: '1rem',
+                      padding: '0.5rem 1rem',
+                      background: 'var(--primary-color)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retry Connection
+                  </button>
                 </div>
               )}
             </div>
@@ -1846,10 +2152,95 @@ const WhiteboardRoom = () => {
             
             {/* Debug info for screen sharing */}
             {process.env.NODE_ENV === 'development' && (
-              <div style={{ fontSize: '0.75rem', color: '#666', padding: '0.5rem' }}>
+              <div style={{ fontSize: '0.75rem', color: '#666', padding: '0.5rem', borderTop: '1px solid #eee' }}>
                 <div>Screen Sharing: {isScreenSharing ? 'Yes' : 'No'}</div>
                 <div>Active Share: {activeScreenShare ? activeScreenShare.userName : 'None'}</div>
                 <div>Remote Stream: {remoteStream ? 'Connected' : 'None'}</div>
+                <div>Local Stream: {screenStream ? 'Active' : 'None'}</div>
+                <div>Peer Connection: {peerConnectionRef.current ? peerConnectionRef.current.connectionState : 'None'}</div>
+                {remoteStream && (
+                  <div>Remote Tracks: {remoteStream.getTracks().map(t => `${t.kind}:${t.readyState}`).join(', ')}</div>
+                )}
+                {screenStream && (
+                  <div>Local Tracks: {screenStream.getTracks().map(t => `${t.kind}:${t.readyState}`).join(', ')}</div>
+                )}
+                <button 
+                  onClick={() => {
+                    console.log('=== SCREEN SHARE DEBUG INFO ===');
+                    console.log('isScreenSharing:', isScreenSharing);
+                    console.log('activeScreenShare:', activeScreenShare);
+                    console.log('remoteStream:', remoteStream);
+                    console.log('screenStream:', screenStream);
+                    console.log('peerConnection:', peerConnectionRef.current);
+                    
+                    if (remoteStream) {
+                      console.log('Remote stream details:', {
+                        id: remoteStream.id,
+                        active: remoteStream.active,
+                        tracks: remoteStream.getTracks().map(t => ({
+                          kind: t.kind,
+                          enabled: t.enabled,
+                          readyState: t.readyState,
+                          label: t.label,
+                          muted: t.muted
+                        }))
+                      });
+                    }
+                    
+                    if (screenStream) {
+                      console.log('Local stream details:', {
+                        id: screenStream.id,
+                        active: screenStream.active,
+                        tracks: screenStream.getTracks().map(t => ({
+                          kind: t.kind,
+                          enabled: t.enabled,
+                          readyState: t.readyState,
+                          label: t.label,
+                          muted: t.muted
+                        }))
+                      });
+                    }
+                    
+                    if (peerConnectionRef.current) {
+                      console.log('Peer connection details:', {
+                        connectionState: peerConnectionRef.current.connectionState,
+                        iceConnectionState: peerConnectionRef.current.iceConnectionState,
+                        signalingState: peerConnectionRef.current.signalingState,
+                        localDescription: peerConnectionRef.current.localDescription,
+                        remoteDescription: peerConnectionRef.current.remoteDescription
+                      });
+                    }
+                    
+                    if (remoteVideoRef.current) {
+                      const video = remoteVideoRef.current;
+                      console.log('Remote video element:', {
+                        videoWidth: video.videoWidth,
+                        videoHeight: video.videoHeight,
+                        readyState: video.readyState,
+                        networkState: video.networkState,
+                        currentTime: video.currentTime,
+                        duration: video.duration,
+                        paused: video.paused,
+                        muted: video.muted,
+                        srcObject: video.srcObject
+                      });
+                    }
+                    
+                    console.log('=== END DEBUG INFO ===');
+                  }}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.75rem',
+                    background: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '3px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Debug Info
+                </button>
               </div>
             )}
           </div>
