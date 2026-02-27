@@ -256,11 +256,13 @@ const WhiteboardRoom = () => {
         userName: data.userName 
       });
 
-      // Request WebRTC connection
+      // Request WebRTC connection with proper target
       if (socket) {
+        console.log('Requesting screen share from:', data.userId);
         socket.emit('request-screen-share', {
           roomId,
-          requesterId: currentUserId
+          requesterId: currentUserId,
+          targetUserId: data.userId
         });
       }
     };
@@ -737,26 +739,35 @@ const WhiteboardRoom = () => {
     } else {
       // Start screen sharing
       try {
+        console.log('Starting screen share...');
+        
         const stream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             cursor: 'always',
-            displaySurface: 'monitor',
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            width: { ideal: 1920, max: 1920 },
+            height: { ideal: 1080, max: 1080 },
+            frameRate: { ideal: 30, max: 30 }
           },
-          audio: false
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 44100
+          }
         });
 
+        console.log('Got display media stream:', stream);
+        
         setScreenStream(stream);
-        screenStreamRef.current = stream; // Store in ref
+        screenStreamRef.current = stream;
         setIsScreenSharing(true);
 
         // Set local video
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
+          localVideoRef.current.play().catch(e => console.log('Local video play error:', e));
         }
 
-        // Notify other users via socket (don't send offer yet, wait for request)
+        // Notify other users via socket
         if (socket && user) {
           const userId = String(user._id || user.id);
           socket.emit('start-screen-share', {
@@ -764,22 +775,32 @@ const WhiteboardRoom = () => {
             userId,
             userName: user.name
           });
+          console.log('Emitted start-screen-share event');
         }
 
         // Handle when user stops sharing via browser UI
-        stream.getVideoTracks()[0].onended = () => {
+        stream.getVideoTracks()[0].addEventListener('ended', () => {
+          console.log('Screen share ended by user');
           stopScreenShare();
-        };
+        });
 
-        console.log('Screen sharing started - waiting for viewer requests');
+        console.log('Screen sharing started successfully');
       } catch (error) {
         console.error('Error starting screen share:', error);
+        
+        // Reset states on error
+        setIsScreenSharing(false);
+        setScreenStream(null);
+        screenStreamRef.current = null;
+        
         if (error.name === 'NotAllowedError') {
-          alert('Screen sharing permission denied');
+          alert('Screen sharing permission denied. Please allow screen sharing and try again.');
         } else if (error.name === 'NotFoundError') {
-          alert('No screen available to share');
+          alert('No screen available to share. Please try again.');
+        } else if (error.name === 'NotSupportedError') {
+          alert('Screen sharing is not supported in this browser.');
         } else {
-          alert('Failed to start screen sharing. Please try again.');
+          alert('Failed to start screen sharing. Please check your browser permissions and try again.');
         }
       }
     }
@@ -788,94 +809,125 @@ const WhiteboardRoom = () => {
   const stopScreenShare = () => {
     console.log('Stopping screen share...');
     
-    if (screenStream) {
-      screenStream.getTracks().forEach(track => {
-        track.stop();
-        console.log('Stopped track:', track.kind);
-      });
+    try {
+      // Stop all tracks in the stream
+      if (screenStream) {
+        screenStream.getTracks().forEach(track => {
+          track.stop();
+          console.log('Stopped track:', track.kind);
+        });
+        setScreenStream(null);
+      }
+      
+      // Clear stream ref
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach(track => track.stop());
+        screenStreamRef.current = null;
+      }
+      
+      // Clear local video
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = null;
+        console.log('Cleared local video');
+      }
+
+      // Close peer connection
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+        peerConnectionRef.current = null;
+        console.log('Closed peer connection');
+      }
+
+      // Clear states
+      setIsScreenSharing(false);
+      setActiveScreenShare(null);
+      setRemoteStream(null);
+
+      // Notify other users
+      if (socket && user) {
+        const userId = String(user._id || user.id);
+        socket.emit('stop-screen-share', {
+          roomId,
+          userId
+        });
+        console.log('Emitted stop-screen-share event');
+      }
+
+      console.log('Screen sharing stopped successfully');
+    } catch (error) {
+      console.error('Error stopping screen share:', error);
+      
+      // Force clear states even if there's an error
+      setIsScreenSharing(false);
+      setActiveScreenShare(null);
+      setRemoteStream(null);
       setScreenStream(null);
+      screenStreamRef.current = null;
     }
-    
-    screenStreamRef.current = null; // Clear ref
-    
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = null;
-      console.log('Cleared local video');
-    }
-
-    if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
-      peerConnectionRef.current = null;
-      console.log('Closed peer connection');
-    }
-
-    // Clear states
-    setIsScreenSharing(false);
-    setActiveScreenShare(null);
-    setRemoteStream(null);
-
-    // Notify other users
-    if (socket && user) {
-      const userId = String(user._id || user.id);
-      socket.emit('stop-screen-share', {
-        roomId,
-        userId
-      });
-    }
-
-    console.log('Screen sharing stopped - canvas should be visible');
   };
 
   const createPeerConnection = () => {
-    const configuration = {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    };
+    try {
+      const configuration = {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' }
+        ],
+        iceCandidatePoolSize: 10
+      };
 
-    const pc = new RTCPeerConnection(configuration);
-    const currentUserId = String(user._id || user.id);
+      const pc = new RTCPeerConnection(configuration);
+      const currentUserId = String(user._id || user.id);
 
-    pc.onicecandidate = (event) => {
-      if (event.candidate && socket) {
-        console.log('Sending ICE candidate');
-        socket.emit('ice-candidate', {
-          roomId,
-          userId: currentUserId,
-          candidate: event.candidate
-        });
-      }
-    };
+      pc.onicecandidate = (event) => {
+        if (event.candidate && socket) {
+          console.log('Sending ICE candidate:', event.candidate);
+          socket.emit('ice-candidate', {
+            roomId,
+            userId: currentUserId,
+            candidate: event.candidate
+          });
+        }
+      };
 
-    pc.ontrack = (event) => {
-      console.log('Received remote track:', event.streams[0]);
-      const stream = event.streams[0];
-      setRemoteStream(stream);
-      
-      // Set video element source
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = stream;
-        console.log('Set remote video source');
-      }
-    };
+      pc.ontrack = (event) => {
+        console.log('Received remote track:', event.streams[0]);
+        const stream = event.streams[0];
+        setRemoteStream(stream);
+        
+        // Set video element source
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current.play().catch(e => console.log('Remote video play error:', e));
+          console.log('Set remote video source');
+        }
+      };
 
-    pc.onconnectionstatechange = () => {
-      console.log('Connection state:', pc.connectionState);
-      if (pc.connectionState === 'connected') {
-        console.log('WebRTC connection established successfully');
-      } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-        console.log('WebRTC connection lost');
-        setRemoteStream(null);
-        setActiveScreenShare(null);
-      }
-    };
+      pc.onconnectionstatechange = () => {
+        console.log('Connection state:', pc.connectionState);
+        if (pc.connectionState === 'connected') {
+          console.log('WebRTC connection established successfully');
+        } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+          console.log('WebRTC connection lost');
+          setRemoteStream(null);
+          setActiveScreenShare(null);
+        }
+      };
 
-    pc.oniceconnectionstatechange = () => {
-      console.log('ICE connection state:', pc.iceConnectionState);
-    };
+      pc.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', pc.iceConnectionState);
+        if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+          console.log('ICE connection failed, attempting restart');
+          pc.restartIce();
+        }
+      };
 
-    return pc;
+      return pc;
+    } catch (error) {
+      console.error('Error creating peer connection:', error);
+      return null;
+    }
   };
 
   const viewSharedScreen = (screen) => {
@@ -1383,6 +1435,10 @@ const WhiteboardRoom = () => {
                 playsInline
                 muted={isScreenSharing}
                 className="screen-share-video"
+                controls={false}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                onLoadedMetadata={() => console.log('Video metadata loaded')}
+                onError={(e) => console.error('Video error:', e)}
               />
               {!remoteStream && activeScreenShare && !isScreenSharing && (
                 <div className="screen-share-loading">
@@ -1777,6 +1833,7 @@ const WhiteboardRoom = () => {
                 className={`sidebar-btn ${isScreenSharing ? 'active' : ''}`}
                 onClick={handleScreenShare}
                 title={isScreenSharing ? 'Stop sharing screen' : 'Share your screen'}
+                disabled={isUploadingFile}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
@@ -1785,6 +1842,15 @@ const WhiteboardRoom = () => {
                 </svg>
                 {isScreenSharing ? 'Stop Sharing' : 'Share Screen'}
               </button>
+            )}
+            
+            {/* Debug info for screen sharing */}
+            {process.env.NODE_ENV === 'development' && (
+              <div style={{ fontSize: '0.75rem', color: '#666', padding: '0.5rem' }}>
+                <div>Screen Sharing: {isScreenSharing ? 'Yes' : 'No'}</div>
+                <div>Active Share: {activeScreenShare ? activeScreenShare.userName : 'None'}</div>
+                <div>Remote Stream: {remoteStream ? 'Connected' : 'None'}</div>
+              </div>
             )}
           </div>
         </div>

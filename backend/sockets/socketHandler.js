@@ -723,12 +723,33 @@ const socketHandler = (io) => {
       }
     });
 
-    socket.on('request-screen-share', ({ roomId, requesterId }) => {
-      console.log('Screen share requested by:', requesterId);
-      // Broadcast to the room so the sharer can respond
-      socket.to(roomId).emit('request-screen-share', {
-        requesterId
-      });
+    socket.on('request-screen-share', ({ roomId, requesterId, targetUserId }) => {
+      console.log('Screen share requested by:', requesterId, 'from:', targetUserId);
+      // Send request to specific user or broadcast to room
+      if (targetUserId) {
+        // Find the target user's socket and send directly
+        const targetSocket = Array.from(io.sockets.sockets.values())
+          .find(s => s.userId === targetUserId && s.rooms.has(roomId));
+        
+        if (targetSocket) {
+          targetSocket.emit('request-screen-share', {
+            requesterId,
+            targetUserId
+          });
+          console.log('Sent screen share request to specific user:', targetUserId);
+        } else {
+          console.log('Target user not found, broadcasting to room');
+          socket.to(roomId).emit('request-screen-share', {
+            requesterId,
+            targetUserId
+          });
+        }
+      } else {
+        // Broadcast to the room so the sharer can respond
+        socket.to(roomId).emit('request-screen-share', {
+          requesterId
+        });
+      }
     });
 
     socket.on('screen-share-offer', ({ roomId, userId, userName, offer, targetUserId }) => {
